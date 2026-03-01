@@ -2,6 +2,7 @@ import flet as ft
 
 def main(page: ft.Page) -> None:
     page.title = "Auth Demo - Flet Template"
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.window_width = 360
     page.window_height = 640
     page.padding = 20
@@ -293,4 +294,5 @@ def main(page: ft.Page) -> None:
     show_signin_screen()
 
 ft.app(target=main)
+
 
