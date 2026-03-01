@@ -1,7 +1,7 @@
 import flet as ft
 
 def main(page: ft.Page) -> None:
-    page.title = "Auth Demo - Flet Template"
+    page.title = "Montclair State Find"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.window_width = 360
     page.window_height = 640
@@ -294,5 +294,6 @@ def main(page: ft.Page) -> None:
     show_signin_screen()
 
 ft.app(target=main)
+
 
 
