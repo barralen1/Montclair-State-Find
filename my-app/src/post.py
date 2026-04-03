@@ -1,4 +1,3 @@
-
 import flet as ft
 from datetime import datetime
 
@@ -49,8 +48,7 @@ def main(page: ft.Page, on_back=None, posts_store=None, current_user=None) -> No
         value="Lost",  # default value
         options=[
             ft.dropdown.Option("Lost"),
-            ft.dropdown.Option("Found"),
-            ft.dropdown.Option("Claimed"),
+            ft.dropdown.Option("Found"), 
         ]
     )
 
@@ -95,27 +93,6 @@ def main(page: ft.Page, on_back=None, posts_store=None, current_user=None) -> No
             padding=ft.padding.symmetric(horizontal=10, vertical=4)
         )
 
-    
-    def update_status(index: int, new_status: str):
-        if 0 <= index < len(posts_store):
-            posts_store[index]["status"] = new_status
-            render_posts()
-
-    def make_status_dropdown(index: int, current_status: str) -> ft.Dropdown:
-        dd = ft.Dropdown(
-            value=current_status,
-            width=160,
-            options=[
-                ft.dropdown.Option("Lost"),
-                ft.dropdown.Option("Found"),
-                ft.dropdown.Option("Claimed"),
-            ]
-        )
-        def on_status_change(e, idx=index):
-            update_status(idx, dd.value)
-        dd.on_change = on_status_change
-        return dd
-
     def render_posts(filtered=None):
         display = filtered if filtered is not None else posts_store
         posts_list.controls.clear()
@@ -124,7 +101,6 @@ def main(page: ft.Page, on_back=None, posts_store=None, current_user=None) -> No
             posts_list.controls.append(ft.Text("No posts yet. Be the first to post."))
         else:
             for i, p in enumerate(display):
-                status_dd = make_status_dropdown(i, p.get("status", "Lost"))
                 is_author = p.get("author") == current_user.get("email")
 
                 delete_button = ft.IconButton(
@@ -155,13 +131,6 @@ def main(page: ft.Page, on_back=None, posts_store=None, current_user=None) -> No
                                 ft.Row(controls=[
                                     ft.Text(f"Contact: {p['contact']}")
                                 ]),
-                                ft.Row(
-                                    controls=[
-                                        status_dd,
-                                        ft.Text("← Update Status", size=12, color=ft.Colors.GREY_600)
-                                    ],
-                                    spacing=10
-                                )
                             ],
                             spacing=6
                         ),
@@ -350,5 +319,8 @@ def main(page: ft.Page, on_back=None, posts_store=None, current_user=None) -> No
     render_view()
    
     update_post_button()
+
+
+
 
 
