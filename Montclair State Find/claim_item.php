@@ -507,3 +507,5 @@ $post = $post_result->fetch_assoc();
 
 </body>
 </html>
+</body>
+</html>
