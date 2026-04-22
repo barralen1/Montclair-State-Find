@@ -1,271 +1,274 @@
 <?php
 session_start();
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+include("db.php");
 
 $error_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
 
-    if ($username === "admin" && $password === "admin123") {
-        $_SESSION['role'] = "admin";
-        $_SESSION['username'] = "Admin";
-        header("Location: admin_index.php");
-        exit();
-    } elseif ($username === "student" && $password === "student123") {
-        $_SESSION['role'] = "student";
-        $_SESSION['username'] = "Linus Mundo";
-        header("Location: index.php");
-        exit();
-    } else {
-        $error_message = "Invalid username or password.";
+    $sql = "SELECT * FROM users WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+
+    if (!$stmt) {
+        die("SQL Error: " . $conn->error);
     }
+
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows == 1) {
+
+        $user = $result->fetch_assoc();
+
+        if (password_verify($password, $user['password'])) {
+
+            $_SESSION['user_id']   = $user['id'];
+            $_SESSION['username']  = $user['username'];
+            $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['role']      = $user['role'];
+
+            if ($user['role'] === 'admin') {
+                header("Location: admin_index.php");
+                exit();
+            } else {
+                header("Location: index.php");
+                exit();
+            }
+
+        } else {
+            $error_message = "Incorrect password.";
+        }
+
+    } else {
+        $error_message = "Username not found.";
+    }
+
+    $stmt->close();
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login - MSU Lost & Found</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Montclair State Find</title>
 
-        body {
-            font-family: Arial, sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #b30f29 0%, #c8102e 55%, #e2334f 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
 
-        .login-shell {
-            width: 100%;
-            max-width: 1100px;
-            min-height: 650px;
-            background: white;
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.18);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#b4002f,#e31837);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:25px;
+}
 
-        .login-left {
-            background: linear-gradient(180deg, #c8102e 0%, #9f1026 100%);
-            color: white;
-            padding: 56px 48px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+.wrapper{
+    width:1100px;
+    max-width:95%;
+    min-height:650px;
+    background:white;
+    border-radius:24px;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    box-shadow:0 30px 60px rgba(0,0,0,0.18);
+}
 
-        .logo-box {
-            width: 82px;
-            height: 82px;
-            border-radius: 22px;
-            background: rgba(255,255,255,0.14);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 38px;
-            margin-bottom: 24px;
-        }
+.left{
+    background:linear-gradient(145deg,#c10034,#e31b3f);
+    color:white;
+    padding:70px 55px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
 
-        .login-left h1 {
-            font-size: 42px;
-            line-height: 1.1;
-            margin-bottom: 14px;
-        }
+.logo-box{
+    width:82px;
+    height:82px;
+    border-radius:22px;
+    background:rgba(255,255,255,0.16);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:42px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    margin-bottom:28px;
+}
 
-        .login-left p {
-            font-size: 16px;
-            line-height: 1.7;
-            color: rgba(255,255,255,0.92);
-            margin-bottom: 26px;
-        }
+.left h1{
+    font-size:54px;
+    line-height:1.05;
+    margin-bottom:22px;
+    font-weight:800;
+}
 
-        .feature-box {
-            background: rgba(255,255,255,0.10);
-            border: 1px solid rgba(255,255,255,0.16);
-            border-radius: 16px;
-            padding: 14px 16px;
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
+.left p{
+    font-size:18px;
+    line-height:1.7;
+    opacity:0.95;
+    max-width:500px;
+}
 
-        .login-right {
-            padding: 56px 48px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background: #ffffff;
-        }
+.right{
+    padding:70px 60px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
 
-        .login-right h2 {
-            font-size: 36px;
-            margin-bottom: 8px;
-            color: #111827;
-        }
+.right h2{
+    font-size:54px;
+    color:#222;
+    margin-bottom:12px;
+}
 
-        .subtext {
-            font-size: 15px;
-            color: #6b7280;
-            margin-bottom: 26px;
-        }
+.sub{
+    color:#777;
+    margin-bottom:35px;
+    font-size:17px;
+}
 
-        .error-box {
-            padding: 12px 14px;
-            border-radius: 14px;
-            background: #fff4f6;
-            color: #b1122b;
-            border: 1px solid #ffd1da;
-            margin-bottom: 18px;
-            font-size: 14px;
-        }
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:700;
+    color:#333;
+}
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+input{
+    width:100%;
+    padding:16px 18px;
+    border:1px solid #ddd;
+    border-radius:14px;
+    margin-bottom:20px;
+    font-size:16px;
+}
 
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 8px;
-        }
+input:focus{
+    outline:none;
+    border-color:#d40036;
+}
 
-        .form-group input {
-            width: 100%;
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
-            border-radius: 14px;
-            padding: 14px 16px;
-            font-size: 15px;
-            outline: none;
-        }
+button{
+    width:100%;
+    padding:16px;
+    background:linear-gradient(90deg,#c10034,#e31b3f);
+    color:white;
+    border:none;
+    border-radius:14px;
+    font-size:18px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+}
 
-        .form-group input:focus {
-            border-color: #c8102e;
-            background: white;
-        }
+button:hover{
+    opacity:0.95;
+}
 
-        .login-btn {
-            width: 100%;
-            background: #c8102e;
-            color: white;
-            border: none;
-            border-radius: 14px;
-            padding: 14px 22px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 6px;
-        }
+.error{
+    background:#ffe5e8;
+    color:#b00020;
+    padding:14px;
+    border-radius:12px;
+    margin-bottom:18px;
+    font-size:15px;
+}
 
-        .login-btn:hover {
-            background: #a90e27;
-        }
+.bottom{
+    margin-top:25px;
+    color:#777;
+    font-size:15px;
+}
 
-        .demo-box {
-            margin-top: 18px;
-            font-size: 14px;
-            color: #6b7280;
-            line-height: 1.8;
-        }
+.bottom a{
+    color:#c10034;
+    text-decoration:none;
+    font-weight:700;
+}
 
-        .demo-box strong {
-            color: #111827;
-        }
+@media(max-width:900px){
+    .wrapper{
+        grid-template-columns:1fr;
+    }
 
-        .back-link {
-            margin-top: 18px;
-            font-size: 14px;
-            color: #6b7280;
-        }
+    .left{
+        padding:45px 30px;
+    }
 
-        .back-link a {
-            color: #c8102e;
-            font-weight: bold;
-            text-decoration: none;
-        }
+    .left h1{
+        font-size:40px;
+    }
 
-        @media (max-width: 900px) {
-            .login-shell {
-                grid-template-columns: 1fr;
-            }
+    .right{
+        padding:45px 30px;
+    }
 
-            .login-left,
-            .login-right {
-                padding: 34px 24px;
-            }
-
-            .login-left h1 {
-                font-size: 34px;
-            }
-
-            .login-right h2 {
-                font-size: 30px;
-            }
-        }
-    </style>
+    .right h2{
+        font-size:42px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<div class="login-shell">
+<div class="wrapper">
 
-    <div class="login-left">
-        <div class="logo-box">🔎</div>
-        <h1>MSU Lost &amp; Found</h1>
+    <div class="left">
+        <div class="logo-box">🔍</div>
+
+        <h1>Montclair State Find</h1>
+
         <p>
-            Sign in to report lost items, browse approved listings,
-            submit ownership claims, and access the Montclair State lost-and-found workflow.
+            Sign in to access the lost-and-found portal, browse approved items,
+            report missing property, and submit ownership claims securely.
         </p>
-
-        <div class="feature-box">Student access for reporting and claiming items.</div>
-        <div class="feature-box">Admin access for approving posts and reviewing claims.</div>
-        <div class="feature-box">Built as a web app for future NEST integration.</div>
     </div>
 
-    <div class="login-right">
-        <h2>Sign In</h2>
-        <p class="subtext">Use your account to continue into the MSU Lost &amp; Found portal.</p>
+    <div class="right">
 
-        <?php if ($error_message != ""): ?>
-            <div class="error-box"><?php echo htmlspecialchars($error_message); ?></div>
-        <?php endif; ?>
+        <h2>Sign In</h2>
+        <div class="sub">Use your username and password to continue.</div>
+
+        <?php if($error_message != ""){ ?>
+            <div class="error"><?php echo $error_message; ?></div>
+        <?php } ?>
 
         <form method="POST">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required>
-            </div>
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Enter your password" required>
-            </div>
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Enter your username" required>
 
-            <button type="submit" class="login-btn">Sign In</button>
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+
+            <button type="submit">Sign In</button>
+
         </form>
 
-        <div class="demo-box">
-            <strong>Demo accounts:</strong><br>
-            admin / admin123<br>
-            student / student123
+        <div class="bottom">
+            Don’t have an account?
+            <a href="register.php">Register</a>
         </div>
 
-        <div class="back-link">
-            Back to <a href="landing.php">Landing Page</a>
-        </div>
     </div>
 
 </div>
