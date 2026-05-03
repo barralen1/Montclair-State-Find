@@ -1,6 +1,6 @@
 # Montclair State Find - Test Cases
 
-##Authentication-
+## Authentication
 
 ### Test Case 1: Valid Registration-
 - Input: Valid name, username, @montclair.edu email, password
